@@ -1,0 +1,4 @@
+#!/bin/bash
+# Backup by syncing the destination to the source. This should not be considered a reliable backup by itself since it has no history.
+
+

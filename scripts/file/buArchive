@@ -1,0 +1,8 @@
+#!/bin/bash
+# Backup by taking a complete copy of the source.
+#
+# Syntax
+#   $0 name source
+
+
+

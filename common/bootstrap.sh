@@ -27,13 +27,15 @@ function requireConfig
 
 
 # Find home. Note that spaces currently aren't supported.
-possibleHomes="/etc/bu" ~/.config/bu
-
-for possibleHome in $possibleHomes; do
-	if [ -e "$possibleHome" ]; then	
-		export BUHOME="$possibleHome"
-	fi
-done
+if [ "$BUHOME" == '' ]; then
+	possibleHomes="/etc/bu" ~/.config/bu
+	
+	for possibleHome in $possibleHomes; do
+		if [ -e "$possibleHome" ]; then	
+			export BUHOME="$possibleHome"
+		fi
+	done
+fi
 
 
 

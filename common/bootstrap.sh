@@ -2,8 +2,28 @@
 
 function require
 {
-	true
+	requireItem="$1"
+	
+	# Include config or functionality
+	if [ -e "$BUHOME/$requireItem" ]; then
+		. "$BUHOME/$requireItem"
+	else
+		echo "$0 require: Could not find \"$BUHOME/$requireItem\"" >&2
+		exit 1
+	fi
 }
+
+function requireConfig
+{
+	configItem="$1"
+	
+	if [ "${!configItem}" == '' ]; then
+		echo "$0 requireConfig: Could not find config item \"$configItem\". See https://github.com/ksandom/bu/blob/master/config/readme.md" >&2
+		exit 1
+	fi
+}
+
+
 
 
 # Find home. Note that spaces currently aren't supported.
@@ -15,10 +35,18 @@ for possibleHome in $possibleHomes; do
 	fi
 done
 
+
+
 # Load config
-if [ -e "$BUHOME/config/general" ]; then
-	. "$BUHOME/config/general"
+export buConfigFile="$BUHOME/config/general.sh"
+if [ -e "$buConfigFile" ]; then
+	. "$buConfigFile"
 else
-	echo "Could not find \"$BUHOME/config/general\"."
+	echo "$0: Could not find \"$buConfigFile\". See https://github.com/ksandom/bu/blob/master/config/general.example.sh" >&2
 	exit 1
 fi
+
+
+
+# Load common libraries
+. $BUHOME/common/parameters.sh

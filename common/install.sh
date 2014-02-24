@@ -33,7 +33,7 @@ function assertRemainingHomeLN
 {
 	debug 2 "Installing remaining home directory components."
 	cd "$NEWBUHOME"
-	ln -sfv "$BUHOME/common" "$BUHOME/docs" "$BUHOME/examples" . | indentOutput 3
+	ln -sfv "$BUHOME/common" "$BUHOME/docs" . | indentOutput 3
 	cd ~-
 }
 

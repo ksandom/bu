@@ -61,7 +61,7 @@ function indentOutput
 			echo "    $line"
 		fi
 		if [ "$outputLog" != '' ]; then
-			echo "$0 DEBUG$level: $line" >> "$outputLog"
+			echo "    $line" >> "$outputLog"
 		fi
 	done
 	

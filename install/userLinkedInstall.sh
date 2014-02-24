@@ -9,7 +9,8 @@ if [ ! -e "common/bootstrap.sh" ]; then
 fi
 
 # Get started
-export BUHOME="`pwd`/common"
+export BUHOME="`pwd`"
+echo $BUHOME
 . common/bootstrap.sh
 
 

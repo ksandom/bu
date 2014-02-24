@@ -5,10 +5,11 @@ function require
 	requireItem="$1"
 	
 	# Include config or functionality
-	if [ -e "$BUHOME/$requireItem" ]; then
-		. "$BUHOME/$requireItem"
+	requireFile="$BUHOME/common/$requireItem"
+	if [ -e "$requireFile" ]; then
+		. "$requireFile"
 	else
-		echo "$0 require: Could not find \"$BUHOME/$requireItem\"" >&2
+		echo "$0 require: Could not find \"$requireFile\"" >&2
 		exit 1
 	fi
 }

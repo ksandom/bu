@@ -17,18 +17,25 @@ function logBasicInfo
 	debug 2 "Installed from: `pwd`"
 }
 
-function assertConfig
+function assertHome
 {
 	# Create the home/config directory. This function is the same regardless of whether the install is a linked or copied install.
 	
 	debug 2 "Creating home directory"
-	mkdir -p "$NEWBUHOME" "$BINHOME"
-	cp -nv "config/general.example.sh" "$NEWBUHOME/general.sh" | indentOutput 3
+	mkdir -p "$NEWBUHOME/config" "$BINHOME"
+	cp -nv "config/general.example.sh" "$NEWBUHOME/config/general.sh" | indentOutput 3
 	cp "README.md" "$NEWBUHOME" | indentOutput 3
 	
 	installReadMe="$NEWBUHOME/README.md"
 }
 
+function assertRemainingHomeLN
+{
+	debug 2 "Installing remaining home directory components."
+	cd "$NEWBUHOME"
+	ln -sfv "$BUHOME/common" "$BUHOME/docs" "$BUHOME/examples" . | indentOutput 3
+	cd ~-
+}
 
 function findAllBin
 {
@@ -39,11 +46,12 @@ function findAllBin
 
 function pipedInstallLN
 {
+	debug 2 "Installing scripts."
 	currentDirectory=`pwd`
 	cd "$BINHOME"
 	cut -b 3- | while read fileName; do
 		fullFilePath="$currentDirectory/scripts/$fileName"
-		debug 3 "Going to install \"$fullFilePath\" to \"$BINHOME\""
-		ln -sf "$fullFilePath" .
+		ln -sfv "$fullFilePath" . | indentOutput 3
 	done
+	cd ~-
 }

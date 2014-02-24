@@ -27,7 +27,7 @@ require "parameters.sh"
 beginLog
 logBasicInfo
 message "install/welcome.md"
-assertConfig
+assertHome
 
 findAllBin | pipedInstallLN
-
+assertRemainingHomeLN

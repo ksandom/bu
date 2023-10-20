@@ -10,4 +10,4 @@ For now, the one true way to install it is
 
     cd ~/placeWhereYouWantToCloneTheRepo
     git clone git@github.com:ksandom/bu.git
-    install/userLinkedInstall.sh
+    ./install/userLinkedInstall.sh

@@ -1,0 +1,77 @@
+#!/bin/bash
+# Back up a few items into the current directory.
+# Syntax: $0 srcDir startPos count
+#
+# startPos: How far into the list to begin including. The list starts at 1. (Default: 1)
+# count: How many items to include in the sub list. (Default: All remaining items.)
+
+if [ "$1" == '' ]; then
+  echo "Not enough parameters." >&2
+  exit 1
+fi
+
+srcDir="$1"
+possibleCount="$(ls -1 "$srcDir" | wc -l)"
+
+start="${2:-1}"
+count="$3"
+
+if [ "$count" == '' ]; then
+  let count=$possibleCount-$start+1
+fi
+
+let finish=$start+$count-1
+let pos="$start"
+
+echo "srcDir=$srcDir"
+
+
+function indent
+{
+  sed 's/^/    /g'
+}
+
+while read thingToBackup; do
+  # On some installations, we will get the full path. So let's make sure that it's uniform.
+  justTheDir="$(basename "$thingToBackup")"
+  fullThing="$srcDir/$justTheDir"
+  
+  echo -e "\n"
+  echo "Backup: $justTheDir"
+  echo "Item: $pos" | indent
+  echo "Range: $start-$finish ($possibleCount is possible.)" | indent
+ 
+  numberOfThingsInRoot="$(ls -1 "$fullThing" | wc -l)"
+  echo "Number of things in the root of \"$justTheDir\": $numberOfThingsInRoot" | indent
+  
+  lastFile="$(ls -1 "$fullThing" | tail -n1)"
+  echo "Likely last file to be backed up will be: $lastFile" | indent
+
+  df -h . | indent
+  du -sh "$fullThing" | indent
+  
+  if [ -e "$justTheDir" ]; then
+    # We've backed it up before. How much is there?
+    du -sh "$justTheDir" | indent
+  else
+    # We haven't backed it up before. Give time to abort.
+    echo
+    for i in {5..1}; do
+      echo "Wait $i"
+      sleep 1
+    done
+  fi
+  
+  rsync -ruvl --progress "$fullThing" .
+  
+  retval="$?"
+  
+  echo -e "\nItem: ($start-$finish): $pos\n"
+  let pos=$pos+1
+  
+  if [ "$retval" != '0' ]; then
+    echo "Stopping because of failure. Suggest:"
+    echo "  rm -Rfv \"$(pwd)/$justTheDir\""
+    exit 1
+  fi
+done < <(ls -1 "$srcDir" | tail -n+$start | head -n$count)

@@ -1,0 +1,29 @@
+#!/bin/bash
+# Block until a new device is plugged in, then output just that device.
+
+tmpFile=/tmp/$$-newDevice
+
+function getCurrentState
+{
+  lsblk -r | cut -d\  -f1 | sort
+}
+
+function testState
+{
+  getCurrentState > "$tmpFile".current
+  
+  if ! diff "$tmpFile".original "$tmpFile".current > /dev/null; then
+    diff "$tmpFile".original "$tmpFile".current | grep '>' | cut -b3- | sort | tail -n1
+    return 0
+  else
+    return 1
+  fi
+}
+
+getCurrentState > "$tmpFile".original
+
+while ! testState; do
+  sleep 0.5
+done
+
+rm -f "$tmpFile".{original,current}

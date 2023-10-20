@@ -1,0 +1,66 @@
+#!/bin/bash
+# Plug in a backup, and this will catalogue it.
+
+echo "Going to ask for permission to do stuff."
+sudo true
+
+echo -n "Plug in the backup..."
+dmesg > /tmp/$$-dmesg-beforePlugIn
+device="$(newDevice)"
+# device=sdh1
+
+# TODO This is super hacky. Re-factor.
+if [ "$(echo -n "$device" | wc -c)" == '3' ]; then
+    oldDevice="$device"
+    device="${device}1"
+
+    echo "The device detected ($oldDevice) is likely the root device rather than the partition that we want. Assuming partition 1 ($device)."
+
+    echo "Giving time for the device to finish spinning up. Because every instance I've seen of this has been a physical HDD that has not yet had time to read its partitions."
+    for i in {10..1}; do
+        echo "Wait $i"
+        sleep 1
+    done
+fi
+
+fullDevice="/dev/$device"
+echo " $device"
+
+
+function out
+{
+    cat - > "$label/$1.out"
+    echo -n " $1"
+}
+
+
+
+# Get the label of the device.
+label="$(sudo /sbin/e2label "$fullDevice")"
+echo "Label: $label"
+mkdir -p "$label"
+
+# Get some info about the drive.
+echo -n "Collecting early info . "
+dmesg > /tmp/$$-dmesg-beforeMount
+diff /tmp/$$-dmesg-beforePlugIn /tmp/$$-dmesg-beforeMount | out dmesg-plugIn
+sudo /sbin/smartctl -i "$fullDevice" | out smartctl-summary
+sudo /sbin/smartctl -a "$fullDevice" | out smartctl-all
+
+# Mount it and collect more info.
+echo "Mount."
+mkdir -p mnt
+sudo mount "$fullDevice" mnt
+dmesg > /tmp/$$-dmesg-afterMount
+
+echo -n "Collecting mounted info . "
+diff /tmp/$$-dmesg-beforeMount /tmp/$$-dmesg-afterMount | out dmesg-mount
+rm  /tmp/$$-dmesg-beforeMount /tmp/$$-dmesg-afterMount
+
+df -h mnt/ | out df
+
+sudo find mnt/ | out contents
+
+echo -e "\nUnmount."
+sudo umount mnt
+rmdir mnt

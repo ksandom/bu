@@ -1,0 +1,57 @@
+#!/bin/bash
+# Produce md5sums for all files in a specified directory. It will spit the results out to STDOUT, ready to be redirected somewhere, meanfile progress goes out to STDERR so that you can keep track.
+# Syntax:
+# md5Everything /path/to/directory
+
+directory="$1"
+tmpFile="/tmp/$$-md5Everything"
+
+if [ "$directory" == '' ]; then
+    head "$0" | grep '#' | cut -b 3-
+    exit 1
+fi
+
+if [ ! -e "$directory" ]; then
+    echo "Could not find \"$directory\"."
+    exit 1
+fi
+
+cd "$directory" || exit 1
+
+function status
+{
+    echo "$1" >&2
+}
+
+function showProgress
+{
+    position="$1"
+    total="$2"
+    fileName="$3"
+    justFile="$(basename "$fileName")"
+
+    size="$(du -sh "$fileName" | awk '{print $1}')"
+
+    let percent=$position*100
+    let percent=$percent/$total
+
+    echo -en "  $position/$total = $percent%  $size  $justFile                \r" >&2
+}
+
+
+status "Getting file list."
+find -type f > "$tmpFile"
+numberOfFiles="$(cat "$tmpFile" | wc -l)"
+
+status "Files to sum: $numberOfFiles"
+
+status "Doing the sums."
+
+let progress=0
+while read file; do
+    let progress=$progress+1
+    showProgress "$progress" "$numberOfFiles" "$file"
+    md5sum "$file"
+done < <(cat "$tmpFile")
+
+rm -f "$tmpFile"

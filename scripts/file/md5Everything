@@ -1,9 +1,14 @@
 #!/bin/bash
 # Produce md5sums for all files in a specified directory. It will spit the results out to STDOUT, ready to be redirected somewhere, meanfile progress goes out to STDERR so that you can keep track.
 # Syntax:
-# md5Everything /path/to/directory
+# md5Everything /path/to/directory [lastFinishedFile]
+#
+# /path/to/directory is the path that you want to recursively scan.
+# lastFinishedFile is the last file that has been successfully scanned. You can use this to continue where you left off.
+
 
 directory="$1"
+lastFinishedFile="$2"
 tmpFile="/tmp/$$-md5Everything"
 
 if [ "$directory" == '' ]; then
@@ -40,7 +45,12 @@ function showProgress
 
 
 status "Getting file list."
-find -type f > "$tmpFile"
+if [ "$lastFinishedFile" == '' ]; then
+    find -type f > "$tmpFile"
+else
+    find -type f | grep -A100000000 "$lastFinishedFile" | tail -n+2 > "$tmpFile"
+fi
+
 numberOfFiles="$(cat "$tmpFile" | wc -l)"
 
 status "Files to sum: $numberOfFiles"

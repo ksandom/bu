@@ -75,7 +75,18 @@ sudo find mnt/ -type l | out contents-links
 echo
 
 
-sudo `which md5Everything` mnt/ > "$(getOutName "md5")"
+sumsFile="$(getOutName "md5")"
+md5EverythingCommand="$(which md5Everything)"
+if [ ! -e "$sumsFile" ]; then
+    echo "No existing sums to resume."
+    lastFile=''
+else
+    numberOfCompletedFiles="$(cat "$sumsFile" | wc -l)"
+    lastFile="$(cat "$sumsFile" | tail -n1 | awk '{print $2}')"
+    echo "$numberOfCompletedFiles files already summed. Last file is $lastFile"
+fi
+
+sudo "$md5EverythingCommand" mnt/ "$lastFile" >> "$sumsFile"
 
 if sudo true; then
     echo "Still have root. Continuing." >&2

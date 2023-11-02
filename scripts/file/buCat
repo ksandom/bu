@@ -77,6 +77,13 @@ echo
 
 sudo `which md5Everything` mnt/ > "$(getOutName "md5")"
 
+if sudo true; then
+    echo "Still have root. Continuing." >&2
+else
+    echo "No longer have root. Hit enter when ready to re-auth.">&2
+    read input
+fi
+
 
 echo -e "\nUnmount."
 sudo umount mnt

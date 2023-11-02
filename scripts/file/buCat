@@ -4,10 +4,15 @@
 echo "Going to ask for permission to do stuff."
 sudo true
 
-echo -n "Plug in the backup..."
-dmesg > /tmp/$$-dmesg-beforePlugIn
-device="$(newDevice)"
-# device=sdh1
+device="$1"
+
+if [ "$device" == '' ]; then
+    echo -n "Plug in the backup..."
+    dmesg > /tmp/$$-dmesg-beforePlugIn
+    device="$(newDevice)"
+else
+    touch /tmp/$$-dmesg-beforePlugIn
+fi
 
 # TODO This is super hacky. Re-factor.
 if [ "$(echo -n "$device" | wc -c)" == '3' ]; then
@@ -27,12 +32,16 @@ fullDevice="/dev/$device"
 echo " $device"
 
 
-function out
+function getOutName
 {
-    cat - > "$label/$1.out"
-    echo -n " $1"
+    echo "$label/$1.out"
 }
 
+function out
+{
+    cat - > "$(getOutName "$1")"
+    echo -n " $1"
+}
 
 
 # Get the label of the device.
@@ -60,6 +69,14 @@ rm  /tmp/$$-dmesg-beforeMount /tmp/$$-dmesg-afterMount
 df -h mnt/ | out df
 
 sudo find mnt/ | out contents
+sudo find mnt/ -type d | out contents-directories
+sudo find mnt/ -type f | out contents-files
+sudo find mnt/ -type l | out contents-links
+echo
+
+
+sudo `which md5Everything` mnt/ > "$(getOutName "md5")"
+
 
 echo -e "\nUnmount."
 sudo umount mnt
